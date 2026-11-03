@@ -1,0 +1,142 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: vendor-risk-postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER:-vendor_user}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-vendor_password}
+      POSTGRES_DB: ${DATABASE_NAME:-vendor_risk}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER:-vendor_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vendor-risk-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: vendor-risk-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vendor-risk-network
+
+  # Jaeger for tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: vendor-risk-jaeger
+    environment:
+      COLLECTOR_ZIPKIN_HTTP_PORT: 9411
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"
+    networks:
+      - vendor-risk-network
+
+  # FastAPI Application
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: vendor-risk-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER:-vendor_user}:${DATABASE_PASSWORD:-vendor_password}@postgres:5432/${DATABASE_NAME:-vendor_risk}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      JAEGER_AGENT_HOST: jaeger
+      JAEGER_AGENT_PORT: 6831
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY}
+      APP_ENV: ${APP_ENV:-production}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src
+      - ./data/uploads:/data/uploads
+    networks:
+      - vendor-risk-network
+    restart: unless-stopped
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.worker
+    container_name: vendor-risk-celery
+    depends_on:
+      - postgres
+      - redis
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USER:-vendor_user}:${DATABASE_PASSWORD:-vendor_password}@postgres:5432/${DATABASE_NAME:-vendor_risk}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+    volumes:
+      - ./src:/app/src
+      - ./data/uploads:/data/uploads
+    networks:
+      - vendor-risk-network
+    restart: unless-stopped
+
+  # Flower for Celery monitoring
+  flower:
+    image: mher/flower:2.0
+    container_name: vendor-risk-flower
+    depends_on:
+      - redis
+      - celery_worker
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    ports:
+      - "5555:5555"
+    networks:
+      - vendor-risk-network
+    restart: unless-stopped
+
+  # MLFlow for experiment tracking
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: vendor-risk-mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    command: mlflow server --host 0.0.0.0 --default-artifact-root /mlflow/artifacts
+    networks:
+      - vendor-risk-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  mlflow_data:
+
+networks:
+  vendor-risk-network:
+    driver: bridge

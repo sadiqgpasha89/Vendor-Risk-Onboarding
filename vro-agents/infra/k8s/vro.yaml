@@ -1,0 +1,122 @@
+# NOT APPLIED anywhere by the authors. Review, then adapt names, image, hosts and secrets. Validate with: kubectl apply --dry-run=server -f vro.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata: {name: vro-config}
+data:
+  APP_ENV: prod
+  VRO_DEV_AUTH: "0"
+  LLM_PROVIDER: rules            # set ollama|google|openai|anthropic after approval
+  LLM_ALLOW_FALLBACK: "1"
+  OIDC_ISSUER: https://idp.example.com/
+  OIDC_AUDIENCE: vro-api
+  ALLOWED_HOSTS: vro.example.com
+  TRUSTED_PROXIES: 10.0.0.0/8
+  VRO_PG_RLS: "1"
+  EMBED_PROVIDER: hash
+  PDF_OCR: "1"
+---
+# Example only: create real secrets with your secret manager (external-secrets, sealed-secrets...), never commit them.
+apiVersion: v1
+kind: Secret
+metadata: {name: vro-secrets}
+type: Opaque
+stringData:
+  VRO_DATABASE_URL: postgresql://vro_app:CHANGE_ME@postgres:5432/vro
+  VRO_DATABASE_URL_ADMIN: postgresql://vro_admin:CHANGE_ME@postgres:5432/vro
+  REDIS_URL: redis://redis:6379/0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: vro-api, labels: {app: vro-api}}
+spec:
+  replicas: 3
+  strategy: {type: RollingUpdate, rollingUpdate: {maxUnavailable: 0, maxSurge: 1}}
+  selector: {matchLabels: {app: vro-api}}
+  template:
+    metadata:
+      labels: {app: vro-api}
+      annotations: {prometheus.io/scrape: "true", prometheus.io/port: "8000", prometheus.io/path: /metrics}
+    spec:
+      securityContext: {runAsNonRoot: true, runAsUser: 10001, fsGroup: 10001, seccompProfile: {type: RuntimeDefault}}
+      terminationGracePeriodSeconds: 45
+      containers:
+        - name: api
+          image: registry.example.com/vro-agents:0.2.0
+          ports: [{containerPort: 8000}]
+          envFrom: [{configMapRef: {name: vro-config}}, {secretRef: {name: vro-secrets}}]
+          readinessProbe: {httpGet: {path: /readyz, port: 8000}, periodSeconds: 10, failureThreshold: 3}
+          livenessProbe: {httpGet: {path: /healthz, port: 8000}, periodSeconds: 15, failureThreshold: 3}
+          resources: {requests: {cpu: 500m, memory: 768Mi}, limits: {cpu: "2", memory: 2Gi}}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts: [{name: tmp, mountPath: /tmp}]
+      volumes: [{name: tmp, emptyDir: {sizeLimit: 512Mi}}]
+      topologySpreadConstraints:
+        - {maxSkew: 1, topologyKey: kubernetes.io/hostname, whenUnsatisfiable: ScheduleAnyway, labelSelector: {matchLabels: {app: vro-api}}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: vro-api}
+spec: {selector: {app: vro-api}, ports: [{port: 80, targetPort: 8000}]}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata: {name: vro-api}
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: vro-api}
+  minReplicas: 3
+  maxReplicas: 12
+  metrics: [{type: Resource, resource: {name: cpu, target: {type: Utilization, averageUtilization: 65}}}]
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata: {name: vro-api}
+spec: {minAvailable: 2, selector: {matchLabels: {app: vro-api}}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vro-api
+  annotations: {nginx.ingress.kubernetes.io/proxy-body-size: 25m}
+spec:
+  ingressClassName: nginx
+  tls: [{hosts: [vro.example.com], secretName: vro-tls}]
+  rules:
+    - host: vro.example.com
+      http: {paths: [{path: /, pathType: Prefix, backend: {service: {name: vro-api, port: {number: 80}}}}]}
+---
+# /metrics is served by the app; this keeps it (and everything else) off the public internet except via ingress.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata: {name: vro-api}
+spec:
+  podSelector: {matchLabels: {app: vro-api}}
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - from:
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: ingress-nginx}}
+        - namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: monitoring}}
+      ports: [{port: 8000}]
+  egress:
+    - to: [{namespaceSelector: {}, podSelector: {matchLabels: {app: postgres}}}, {namespaceSelector: {}, podSelector: {matchLabels: {app: redis}}}]
+    - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: kube-system}}}]
+      ports: [{port: 53, protocol: UDP}, {port: 53, protocol: TCP}]
+    - to: [{ipBlock: {cidr: 0.0.0.0/0}}]     # TIGHTEN: restrict to IdP + LLM provider CIDRs / use an egress proxy
+      ports: [{port: 443}]
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata: {name: vro-sweep}
+spec:
+  schedule: "*/15 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: sweep
+              image: curlimages/curl:8.10.1
+              # Needs an admin token: provide via secret vro-sweep-token (client-credentials, short-lived in practice).
+              env: [{name: TOKEN, valueFrom: {secretKeyRef: {name: vro-sweep-token, key: token}}}]
+              command: ["sh", "-c", "curl -fsS -X POST -H \"Authorization: Bearer $TOKEN\" http://vro-api/v1/admin/sweep && curl -fsS -X POST -H \"Authorization: Bearer $TOKEN\" http://vro-api/v1/admin/audit/verify"]

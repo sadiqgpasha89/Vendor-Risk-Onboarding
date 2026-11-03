@@ -1,0 +1,284 @@
+{
+ "$defs": {
+  "DataAccess": {
+   "additionalProperties": false,
+   "properties": {
+    "access_type": {
+     "enum": [
+      "none",
+      "read_only",
+      "read_write",
+      "privileged",
+      "network_connectivity"
+     ],
+     "title": "Access Type",
+     "type": "string"
+    },
+    "data_types": {
+     "items": {
+      "enum": [
+       "none",
+       "public",
+       "internal",
+       "confidential",
+       "customer_pii",
+       "payment_card",
+       "authentication_secrets",
+       "regulated_other"
+      ],
+      "type": "string"
+     },
+     "minItems": 1,
+     "title": "Data Types",
+     "type": "array"
+    },
+    "storage_locations": {
+     "default": [],
+     "items": {
+      "type": "string"
+     },
+     "title": "Storage Locations",
+     "type": "array"
+    },
+    "volume": {
+     "enum": [
+      "none",
+      "low",
+      "medium",
+      "high",
+      "very_high"
+     ],
+     "title": "Volume",
+     "type": "string"
+    }
+   },
+   "required": [
+    "data_types",
+    "volume",
+    "access_type"
+   ],
+   "title": "DataAccess",
+   "type": "object"
+  },
+  "DeclaredOwner": {
+   "additionalProperties": false,
+   "properties": {
+    "country_iso2": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Country Iso2"
+    },
+    "is_person": {
+     "default": false,
+     "title": "Is Person",
+     "type": "boolean"
+    },
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "pct": {
+     "maximum": 100,
+     "minimum": 0,
+     "title": "Pct",
+     "type": "number"
+    }
+   },
+   "required": [
+    "name",
+    "pct"
+   ],
+   "title": "DeclaredOwner",
+   "type": "object"
+  }
+ },
+ "additionalProperties": false,
+ "properties": {
+  "annual_spend_usd": {
+   "anyOf": [
+    {
+     "minimum": 0,
+     "type": "number"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Annual Spend Usd"
+  },
+  "business_owner": {
+   "title": "Business Owner",
+   "type": "string"
+  },
+  "contract_text_doc_hint": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Contract Text Doc Hint"
+  },
+  "country_iso2": {
+   "pattern": "^[A-Z]{2}$",
+   "title": "Country Iso2",
+   "type": "string"
+  },
+  "criticality_hint": {
+   "enum": [
+    "low",
+    "medium",
+    "high",
+    "critical"
+   ],
+   "title": "Criticality Hint",
+   "type": "string"
+  },
+  "customer_facing": {
+   "default": false,
+   "title": "Customer Facing",
+   "type": "boolean"
+  },
+  "data_access": {
+   "$ref": "#/$defs/DataAccess"
+  },
+  "declared_owners": {
+   "default": [],
+   "items": {
+    "$ref": "#/$defs/DeclaredOwner"
+   },
+   "title": "Declared Owners",
+   "type": "array"
+  },
+  "directors": {
+   "default": [],
+   "items": {
+    "type": "string"
+   },
+   "title": "Directors",
+   "type": "array"
+  },
+  "emergency": {
+   "default": false,
+   "title": "Emergency",
+   "type": "boolean"
+  },
+  "jurisdictions": {
+   "items": {
+    "enum": [
+     "US",
+     "EU",
+     "IN",
+     "UK",
+     "OTHER"
+    ],
+    "type": "string"
+   },
+   "minItems": 1,
+   "title": "Jurisdictions",
+   "type": "array"
+  },
+  "legal_name": {
+   "maxLength": 300,
+   "minLength": 2,
+   "title": "Legal Name",
+   "type": "string"
+  },
+  "lei": {
+   "anyOf": [
+    {
+     "pattern": "^[A-Z0-9]{18}[0-9]{2}$",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Lei"
+  },
+  "registration_number": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Registration Number"
+  },
+  "regulatory_critical": {
+   "default": false,
+   "title": "Regulatory Critical",
+   "type": "boolean"
+  },
+  "service_description": {
+   "maxLength": 4000,
+   "title": "Service Description",
+   "type": "string"
+  },
+  "subcontractors": {
+   "default": [],
+   "items": {
+    "type": "string"
+   },
+   "title": "Subcontractors",
+   "type": "array"
+  },
+  "substitutability": {
+   "default": "moderate",
+   "enum": [
+    "easy",
+    "moderate",
+    "hard",
+    "very_hard"
+   ],
+   "title": "Substitutability",
+   "type": "string"
+  },
+  "trade_names": {
+   "default": [],
+   "items": {
+    "type": "string"
+   },
+   "title": "Trade Names",
+   "type": "array"
+  },
+  "website": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Website"
+  }
+ },
+ "required": [
+  "legal_name",
+  "country_iso2",
+  "service_description",
+  "business_owner",
+  "data_access",
+  "criticality_hint",
+  "jurisdictions"
+ ],
+ "title": "VendorIntake",
+ "type": "object"
+}

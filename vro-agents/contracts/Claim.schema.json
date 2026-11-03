@@ -1,0 +1,182 @@
+{
+ "$defs": {
+  "Evidence": {
+   "additionalProperties": false,
+   "properties": {
+    "chunk_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Chunk Id"
+    },
+    "doc_id": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Doc Id"
+    },
+    "locator": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Locator"
+    },
+    "page": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Page"
+    },
+    "quote": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Quote"
+    },
+    "retrieved_at": {
+     "format": "date-time",
+     "title": "Retrieved At",
+     "type": "string"
+    },
+    "source_sha256": {
+     "title": "Source Sha256",
+     "type": "string"
+    },
+    "source_type": {
+     "enum": [
+      "document",
+      "api",
+      "list",
+      "human"
+     ],
+     "title": "Source Type",
+     "type": "string"
+    },
+    "source_version": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Source Version"
+    },
+    "stance": {
+     "default": "SUPPORTS",
+     "enum": [
+      "SUPPORTS",
+      "CONTRADICTS"
+     ],
+     "title": "Stance",
+     "type": "string"
+    }
+   },
+   "required": [
+    "source_type",
+    "source_sha256"
+   ],
+   "title": "Evidence",
+   "type": "object"
+  }
+ },
+ "additionalProperties": false,
+ "properties": {
+  "claim_id": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Claim Id"
+  },
+  "confidence": {
+   "maximum": 1,
+   "minimum": 0,
+   "title": "Confidence",
+   "type": "number"
+  },
+  "evidence": {
+   "items": {
+    "$ref": "#/$defs/Evidence"
+   },
+   "minItems": 1,
+   "title": "Evidence",
+   "type": "array"
+  },
+  "object": {
+   "default": null,
+   "title": "Object"
+  },
+  "predicate": {
+   "title": "Predicate",
+   "type": "string"
+  },
+  "statement": {
+   "title": "Statement",
+   "type": "string"
+  },
+  "subject": {
+   "title": "Subject",
+   "type": "string"
+  },
+  "valid_until": {
+   "anyOf": [
+    {
+     "format": "date-time",
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Valid Until"
+  }
+ },
+ "required": [
+  "subject",
+  "predicate",
+  "statement",
+  "evidence",
+  "confidence"
+ ],
+ "title": "Claim",
+ "type": "object"
+}

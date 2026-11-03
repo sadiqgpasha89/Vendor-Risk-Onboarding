@@ -1,0 +1,45 @@
+name: "periodic_vendor_risk_reassessment"
+version: "1.1.0"
+description: "Continuous monitoring, delta screening, and feature drift surveillance for active vendors"
+
+trigger:
+  schedule: "0 2 * * *"  # Daily at 02:00 UTC
+  event_topics:
+    - "vendor.bank_account_modified"
+    - "vendor.ownership_structure_changed"
+    - "regulatory.watchlist_updated"
+
+pipeline:
+  - stage: "delta_screening"
+    id: "delta_watchlist_check"
+    pipeline: "WatchlistPipeline"
+    inputs: ["active_vendors_batch"]
+    filter: "updated_sanctions_only"
+    outputs: ["newly_flagged_vendors"]
+
+  - stage: "drift_surveillance"
+    id: "covariate_drift_monitor"
+    component: "DriftMonitor"
+    metrics:
+      - "population_stability_index"
+      - "wasserstein_distance"
+    alert_threshold:
+      psi_severe_drift: 0.25
+      wasserstein_warning: 0.15
+    actions:
+      on_drift_detected: "trigger_model_retraining_pipeline"
+
+  - stage: "re_scoring"
+    id: "hybrid_engine_fast_eval"
+    engine: "HybridRiskEngine"
+    mode: "batch_accelerated"
+    concurrency: 10
+    outputs: ["updated_risk_scores", "tier_transitions"]
+
+  - stage: "notification_and_escalation"
+    id: "escalation_dispatcher"
+    rules:
+      - condition: "tier_transition in ['LOW->HIGH', 'MEDIUM->HIGH', 'ANY->CRITICAL']"
+        action: "freeze_payment_terms_and_notify_risk_officer"
+      - condition: "sanctions_hit == true"
+        action: "immediate_block_and_compliance_review"

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.env
+data/vro.db*
+evals/last_report.json
+evals/live_report.json

@@ -1,0 +1,23 @@
+# NOT RUN by the authors. Local stack: API + Postgres/pgvector + Redis. Dev auth is ON here; never use this file in production.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment: {POSTGRES_USER: vro_admin, POSTGRES_PASSWORD: dev_only_change_me, POSTGRES_DB: vro}
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck: {test: ["CMD-SHELL", "pg_isready -U vro_admin -d vro"], interval: 5s, retries: 10}
+  redis:
+    image: redis:7-alpine
+  api:
+    build: {context: ../.., dockerfile: Dockerfile}
+    depends_on: {db: {condition: service_healthy}}
+    ports: ["8000:8000"]
+    environment:
+      APP_ENV: local
+      VRO_DEV_AUTH: "1"
+      VRO_DATABASE_URL: postgresql://vro_admin:dev_only_change_me@db:5432/vro
+      REDIS_URL: redis://redis:6379/0
+      LLM_PROVIDER: rules
+    security_opt: ["no-new-privileges:true"]
+    cap_drop: ["ALL"]
+volumes:
+  pgdata: {}

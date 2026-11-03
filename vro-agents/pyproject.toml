@@ -1,0 +1,23 @@
+[project]
+name = "vro-agents"
+version = "0.1.0"
+description = "Multi-agent vendor and third-party risk onboarding for regulated financial institutions (reference implementation, synthetic data)"
+requires-python = ">=3.11"
+dependencies = [
+  "starlette>=0.37",
+  "uvicorn>=0.29",
+  "pydantic>=2.6",
+  "PyYAML>=6.0",
+  "Jinja2>=3.1",
+  "numpy>=1.26",
+  "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = ["ruff>=0.5", "reportlab>=4", "pypdf>=4.2", "pdfplumber>=0.11", "pytesseract>=0.3.10", "pdf2image>=1.17", "pillow>=10", "pyjwt[crypto]>=2.8", "cryptography>=42"]
+# Production extras. System packages needed for OCR: tesseract-ocr, poppler-utils (see Dockerfile). Temporal/MCP remain future swaps (docs/adr).
+prod = ["psycopg[binary]>=3.1", "psycopg-pool>=3.2", "pyjwt[crypto]>=2.8", "pypdf>=4.2", "pdfplumber>=0.11", "pytesseract>=0.3.10", "pdf2image>=1.17", "pillow>=10", "redis>=5", "opentelemetry-api>=1.24", "opentelemetry-sdk>=1.24"]
+
+[tool.ruff]
+line-length = 180
+target-version = "py311"

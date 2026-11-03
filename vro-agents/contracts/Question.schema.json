@@ -1,0 +1,52 @@
+{
+ "additionalProperties": false,
+ "properties": {
+  "blocking": {
+   "default": false,
+   "title": "Blocking",
+   "type": "boolean"
+  },
+  "options": {
+   "anyOf": [
+    {
+     "items": {
+      "type": "string"
+     },
+     "type": "array"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Options"
+  },
+  "text": {
+   "title": "Text",
+   "type": "string"
+  },
+  "to_role": {
+   "enum": [
+    "analyst",
+    "infosec",
+    "legal",
+    "aml",
+    "sponsor",
+    "vendor_via_analyst"
+   ],
+   "title": "To Role",
+   "type": "string"
+  },
+  "why_it_matters": {
+   "title": "Why It Matters",
+   "type": "string"
+  }
+ },
+ "required": [
+  "to_role",
+  "text",
+  "why_it_matters"
+ ],
+ "title": "Question",
+ "type": "object"
+}

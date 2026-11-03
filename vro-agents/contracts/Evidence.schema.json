@@ -1,0 +1,111 @@
+{
+ "additionalProperties": false,
+ "properties": {
+  "chunk_id": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Chunk Id"
+  },
+  "doc_id": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Doc Id"
+  },
+  "locator": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Locator"
+  },
+  "page": {
+   "anyOf": [
+    {
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Page"
+  },
+  "quote": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Quote"
+  },
+  "retrieved_at": {
+   "format": "date-time",
+   "title": "Retrieved At",
+   "type": "string"
+  },
+  "source_sha256": {
+   "title": "Source Sha256",
+   "type": "string"
+  },
+  "source_type": {
+   "enum": [
+    "document",
+    "api",
+    "list",
+    "human"
+   ],
+   "title": "Source Type",
+   "type": "string"
+  },
+  "source_version": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Source Version"
+  },
+  "stance": {
+   "default": "SUPPORTS",
+   "enum": [
+    "SUPPORTS",
+    "CONTRADICTS"
+   ],
+   "title": "Stance",
+   "type": "string"
+  }
+ },
+ "required": [
+  "source_type",
+  "source_sha256"
+ ],
+ "title": "Evidence",
+ "type": "object"
+}

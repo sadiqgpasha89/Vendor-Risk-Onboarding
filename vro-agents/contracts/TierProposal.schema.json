@@ -1,0 +1,46 @@
+{
+ "additionalProperties": false,
+ "properties": {
+  "factors": {
+   "additionalProperties": {
+    "additionalProperties": true,
+    "type": "object"
+   },
+   "title": "Factors",
+   "type": "object"
+  },
+  "floors_applied": {
+   "items": {
+    "type": "string"
+   },
+   "title": "Floors Applied",
+   "type": "array"
+  },
+  "inherent_score": {
+   "title": "Inherent Score",
+   "type": "number"
+  },
+  "rationale": {
+   "title": "Rationale",
+   "type": "string"
+  },
+  "scoring_version": {
+   "title": "Scoring Version",
+   "type": "string"
+  },
+  "tier": {
+   "title": "Tier",
+   "type": "integer"
+  }
+ },
+ "required": [
+  "inherent_score",
+  "tier",
+  "factors",
+  "floors_applied",
+  "rationale",
+  "scoring_version"
+ ],
+ "title": "TierProposal",
+ "type": "object"
+}

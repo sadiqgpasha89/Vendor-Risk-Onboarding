@@ -1,0 +1,62 @@
+# Files and directories to ignore in Docker builds
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+*.sublime-project
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Documentation
+docs/
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Miscellaneous
+*.md
+LICENSE
+.editorconfig
+Makefile

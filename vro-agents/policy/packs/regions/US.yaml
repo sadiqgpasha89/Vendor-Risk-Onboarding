@@ -1,0 +1,8 @@
+# VERIFY with Compliance: engineering input only, not legal advice (plan §2.6).
+region: US
+additional_evidence: {1: [], 2: []}
+regulation_refs:
+  lifecycle: "US Interagency Guidance on Third-Party Relationships (Jun 2023; Fed SR 23-4, FDIC, OCC)"
+  sanctions: "OFAC SDN / 50 Percent Rule"
+  privacy: "GLBA Safeguards"
+required_clauses: [audit_rights, breach_notification, subcontractor_flowdown, exit_assistance, data_location]

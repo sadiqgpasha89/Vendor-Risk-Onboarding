@@ -1,0 +1,110 @@
+name: "enterprise_vendor_onboarding"
+version: "2.0.0"
+description: "High-throughput, resilient dual-stack (Open Stack + GCP) vendor risk onboarding workflow"
+
+architecture:
+  pattern: "langgraph_dag_parallel_fanout"
+  concurrency_limit: 5
+  execution_mode: "async"
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    recovery_timeout_seconds: 30
+
+cloud_environments:
+  open_stack:
+    storage: "local_filesystem"
+    event_bus: "redis_pubsub"
+    database: "postgresql"
+    llm_backend: "ollama_or_openai"
+  gcp:
+    storage: "google_cloud_storage"
+    event_bus: "cloud_pubsub"
+    database: "cloud_sql_postgresql"
+    llm_backend: "vertex_ai_gemini"
+
+pipeline:
+  - stage: "ingestion"
+    id: "document_processor"
+    name: "Multi-Format Document Parser & OCR"
+    agent: "DocumentProcessorAgent"
+    timeout_seconds: 30
+    retry_policy:
+      max_retries: 3
+      backoff: "exponential"
+    inputs: ["documents", "vendor_metadata"]
+    outputs: ["parsed_documents", "extracted_entities", "ocr_confidence_scores"]
+
+  - stage: "parallel_validation_fanout"
+    execution: "concurrent"
+    steps:
+      - id: "kyc_validator"
+        name: "KYC & Beneficial Ownership Verification"
+        agent: "KYCValidatorAgent"
+        inputs: ["parsed_documents", "vendor_data"]
+        outputs: ["kyc_status", "tax_validation", "iban_validation", "beneficial_owners"]
+
+      - id: "sanctions_screener"
+        name: "Watchlist & PEP Phonetic Screening"
+        pipeline: "WatchlistPipeline"
+        inputs: ["vendor_name", "country", "beneficial_owners"]
+        outputs: ["sanctions_hits", "pep_status", "adverse_media_flags"]
+
+      - id: "compliance_checker"
+        name: "Regulatory & AML Policy Verification"
+        agent: "ComplianceCheckerAgent"
+        inputs: ["vendor_data", "country", "industry"]
+        outputs: ["compliance_status", "anti_bribery_score", "esg_status"]
+
+  - stage: "quantitative_risk_fanin"
+    id: "hybrid_risk_engine"
+    name: "Tri-Tier Hybrid Risk Evaluation"
+    engine: "HybridRiskEngine"
+    steps:
+      - tier: 1
+        name: "Deterministic Policy & Statutory Gates"
+        stop_on_critical_violation: false
+      - tier: 2
+        name: "Quantitative ML & Anomaly Profiling"
+        model: "isolation_forest_gbdt_calibrator"
+        feature_store: "online_redis_offline_parquet"
+        attribution: "shap_feature_importance"
+    outputs: ["composite_risk_score", "risk_tier", "decision", "top_risk_drivers"]
+
+  - stage: "synthesis_and_groundedness"
+    id: "synthesis_suite"
+    steps:
+      - id: "risk_assessor"
+        name: "Qualitative Risk Synthesis"
+        agent: "RiskAssessorAgent"
+        inputs: ["kyc_results", "compliance_results", "quantitative_scores"]
+        outputs: ["executive_summary", "dimension_scores"]
+
+      - id: "hallucination_guard"
+        name: "Citation & Fact Groundedness Check"
+        evaluator: "HallucinationEvaluator"
+        min_groundedness_score: 0.80
+        inputs: ["executive_summary", "source_evidence"]
+        outputs: ["is_grounded", "groundedness_score"]
+
+      - id: "report_generator"
+        name: "Audit-Ready Dossier Formatting"
+        agent: "ReportGeneratorAgent"
+        outputs: ["markdown_dossier", "html_executive_summary"]
+
+  - stage: "governance_routing"
+    id: "supervisor_gate"
+    name: "Supervisor Routing & Reflection Gate"
+    agent: "SupervisorAgent"
+    criteria:
+      automatic_approval:
+        max_risk_score: 35.0
+        require_zero_tier1_violations: true
+        require_kyc_verified: true
+      mandatory_hitl:
+        min_risk_score: 65.0
+        require_on_sanctions_hit: true
+        require_on_recent_bank_change: true
+      reflection_loop:
+        max_iterations: 2
+        trigger_on_validation_conflict: true

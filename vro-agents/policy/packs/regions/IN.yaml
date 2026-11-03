@@ -1,0 +1,8 @@
+# VERIFY with Compliance: engineering input only, not legal advice (plan §2.6).
+region: IN
+additional_evidence: {1: [], 2: []}
+regulation_refs:
+  lifecycle: "RBI outsourcing / IT outsourcing directions"
+  privacy: "India DPDP Act 2023"
+required_clauses: [audit_rights, breach_notification, subcontractor_flowdown, exit_assistance, data_location, regulator_inspection_access]
+data_localisation_check: true

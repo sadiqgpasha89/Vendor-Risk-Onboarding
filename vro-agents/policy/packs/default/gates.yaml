@@ -1,0 +1,48 @@
+# Gates, roles, SLAs, required evidence per tier (plan §6.8, §3.4, §5.5). Policy-as-data.
+policy_pack_version_label: "default-1"
+roles:
+  sponsor: {can: [create_case, answer_sponsor_question]}
+  analyst: {can: [read, upload, gate:G0, answer_question, comms_draft]}
+  senior_analyst: {can: [read, upload, gate:G0, gate:G2, gate:G3, answer_question, comms_draft]}
+  aml: {can: [read, gate:G1]}
+  infosec: {can: [read, gate:G3, answer_question]}
+  legal: {can: [read, gate:G3, answer_question]}
+  manager: {can: [read, gate:G4_T3, gate:G4_T4]}
+  senior_risk: {can: [read, gate:G4_T2, gate:G4_T3, gate:G4_T4]}
+  committee: {can: [read, gate:G4_T1, gate:G4_T2, gate:G4_T3, gate:G4_T4]}
+  head_tprm: {can: [read, gate:GX]}
+  admin: {can: [read, admin, kill_switch, policy_activate]}
+  auditor: {can: [read, audit_export]}
+gate_roles:   # which roles may decide each gate
+  G0: [analyst, senior_analyst]
+  G1: [aml]
+  G2: [senior_analyst]
+  G3: [analyst, senior_analyst, infosec, legal]
+  G4_T1: [committee]
+  G4_T2: [senior_risk, committee]
+  G4_T3: [manager, senior_risk, committee]
+  G4_T4: [manager, senior_risk, committee]
+  GX: [head_tprm]
+sla_hours: {G0: 4, G1: 24, G2: 24, G3: 72, G4_T1: 120, G4_T2: 72, G4_T3: 48, G4_T4: 48, GX: 4}
+requires_g2_tiers: [1, 2]
+conditional_max_days: 30
+specialists_by_tier:   # which analysis agents run (A5 security, A6 financial, A7 reg/contract, A8 concentration)
+  1: [A5, A6, A7, A8]
+  2: [A5, A6, A7, A8]
+  3: [A5, A7]
+  4: [A5]
+evidence_matrix:       # required document types per tier (plan §2.6/§4.3)
+  1: [soc2_report, iso_certificate, pentest_summary, bcp_dr, insurance_certificate, contract, dpa, financial_statements]
+  2: [soc2_report, pentest_summary, bcp_dr, insurance_certificate, contract, dpa]
+  3: [insurance_certificate, contract]
+  4: []
+max_age_days:          # staleness ST-007 by claim predicate prefix
+  financial: 365
+  cyber_rating: 30
+  default: 540
+soc2_max_age_days: 365
+pentest_max_age_days: 365
+min_cyber_insurance_usd: 5000000
+bank_rto_hours_tier1: 4
+max_breach_notice_hours: 72
+min_liability_cap_multiple: 1.0

@@ -1,0 +1,89 @@
+{
+ "additionalProperties": false,
+ "properties": {
+  "conditions": {
+   "default": [],
+   "items": {
+    "type": "string"
+   },
+   "title": "Conditions",
+   "type": "array"
+  },
+  "decision": {
+   "enum": [
+    "APPROVE",
+    "REJECT",
+    "CLEAR",
+    "CONFIRM_MATCH",
+    "CONFIRM",
+    "OVERRIDE",
+    "ACCEPT_RISK",
+    "REQUEST_REWORK",
+    "ESCALATE"
+   ],
+   "title": "Decision",
+   "type": "string"
+  },
+  "expires_at": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Expires At"
+  },
+  "override_tier": {
+   "anyOf": [
+    {
+     "maximum": 4,
+     "minimum": 1,
+     "type": "integer"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Override Tier"
+  },
+  "rationale": {
+   "minLength": 3,
+   "title": "Rationale",
+   "type": "string"
+  },
+  "reason_code": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Reason Code"
+  },
+  "subject": {
+   "anyOf": [
+    {
+     "type": "string"
+    },
+    {
+     "type": "null"
+    }
+   ],
+   "default": null,
+   "title": "Subject"
+  }
+ },
+ "required": [
+  "decision",
+  "rationale"
+ ],
+ "title": "GateDecision",
+ "type": "object"
+}

@@ -1,0 +1,7 @@
+# VERIFY with Compliance: engineering input only, not legal advice (plan §2.6).
+region: EU
+additional_evidence: {1: [register_of_information], 2: []}
+regulation_refs:
+  lifecycle: "EU DORA (Reg. 2022/2554) - ICT third-party risk"
+  privacy: "GDPR Art. 28 processor terms; Chapter V transfers"
+required_clauses: [audit_rights, breach_notification, subcontractor_flowdown, exit_assistance, data_location, dora_termination_rights]

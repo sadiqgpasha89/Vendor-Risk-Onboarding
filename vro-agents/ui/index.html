@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vendor Risk Onboarding</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="#/">Vendor Risk Onboarding <span class="badge synth">SYNTHETIC DATA</span></a>
+  <nav>
+    <a href="#/" data-nav="queue">Queue</a>
+    <a href="#/new" data-nav="new">New case</a>
+    <a href="#/kpis" data-nav="kpis">KPIs</a>
+    <a href="#/admin" data-nav="admin">Admin</a>
+  </nav>
+  <div class="who">
+    <label>User <input id="who-user" size="10" aria-label="user id"></label>
+    <label>Role <select id="who-role" aria-label="role"></select></label>
+  </div>
+</header>
+<main id="app" tabindex="-1"></main>
+<div id="toasts" aria-live="polite"></div>
+<div id="modal-root"></div>
+<script src="/app.js"></script>
+</body>
+</html>

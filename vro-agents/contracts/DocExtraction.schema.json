@@ -1,0 +1,97 @@
+{
+ "$defs": {
+  "ExtractedField": {
+   "additionalProperties": false,
+   "properties": {
+    "found": {
+     "default": false,
+     "title": "Found",
+     "type": "boolean"
+    },
+    "name": {
+     "title": "Name",
+     "type": "string"
+    },
+    "page": {
+     "anyOf": [
+      {
+       "type": "integer"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Page"
+    },
+    "quote": {
+     "anyOf": [
+      {
+       "type": "string"
+      },
+      {
+       "type": "null"
+      }
+     ],
+     "default": null,
+     "title": "Quote"
+    },
+    "value": {
+     "default": null,
+     "title": "Value"
+    }
+   },
+   "required": [
+    "name"
+   ],
+   "title": "ExtractedField",
+   "type": "object"
+  }
+ },
+ "additionalProperties": false,
+ "description": "Reader (A4) output: schema-only, produced without tools (GR-008).",
+ "properties": {
+  "doc_id": {
+   "title": "Doc Id",
+   "type": "string"
+  },
+  "doc_type": {
+   "title": "Doc Type",
+   "type": "string"
+  },
+  "fields": {
+   "default": [],
+   "items": {
+    "$ref": "#/$defs/ExtractedField"
+   },
+   "title": "Fields",
+   "type": "array"
+  },
+  "flags": {
+   "default": [],
+   "items": {
+    "type": "string"
+   },
+   "title": "Flags",
+   "type": "array"
+  },
+  "lists": {
+   "additionalProperties": {
+    "items": {
+     "additionalProperties": true,
+     "type": "object"
+    },
+    "type": "array"
+   },
+   "default": {},
+   "title": "Lists",
+   "type": "object"
+  }
+ },
+ "required": [
+  "doc_id",
+  "doc_type"
+ ],
+ "title": "DocExtraction",
+ "type": "object"
+}

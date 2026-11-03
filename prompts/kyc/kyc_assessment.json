@@ -1,0 +1,31 @@
+{
+  "name": "kyc_assessment",
+  "category": "kyc",
+  "description": "Assess vendor KYC information",
+  "versions": [
+    {
+      "version": "v1.0",
+      "name": "kyc_assessment",
+      "description": "Initial KYC assessment prompt",
+      "category": "kyc",
+      "template": "Analyze the following vendor KYC information and provide a comprehensive assessment:\n\nVendor Name: {{vendor_name}}\nCountry: {{country}}\nRegistration Number: {{registration_number}}\n\nProvide assessment for:\n1. Identity verification status\n2. Beneficial ownership\n3. Risk level\n4. Recommended actions\n\nFormat response as JSON with clear sections.",
+      "variables": ["vendor_name", "country", "registration_number"],
+      "model": "gpt-4",
+      "temperature": 0.3,
+      "max_tokens": 2048,
+      "tags": ["kyc", "vendor", "compliance"],
+      "created_at": "2024-01-01T00:00:00",
+      "updated_at": "2024-01-01T00:00:00",
+      "created_by": "system",
+      "notes": "Used for initial KYC validation",
+      "is_active": true
+    }
+  ],
+  "default_version": "v1.0",
+  "created_at": "2024-01-01T00:00:00",
+  "usage_count": 0,
+  "metadata": {
+    "domain": "compliance",
+    "required_inputs": ["vendor_name", "country", "registration_number"]
+  }
+}
