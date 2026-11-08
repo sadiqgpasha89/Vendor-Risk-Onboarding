@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vendor Risk Onboarding with Agentic AI</title>
+<meta name="description" content="An evidence-first, human-gated multi-agent system for vendor risk onboarding: LLMs propose, deterministic code decides.">
+<style>
+  :root {
+    --bg: #fafaf7; --surface: #ffffff; --ink: #1b1f2a; --muted: #5b6272;
+    --line: #e3e3dc; --accent: #1f4fd8; --accent-soft: #e8eefc;
+    --good: #14763f; --warn: #9a5b00; --bad: #a32020; --code: #f1f1ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151c; --surface: #191d27; --ink: #e8eaf0; --muted: #9aa2b4;
+      --line: #2a3040; --accent: #7fa2ff; --accent-soft: #1c2745;
+      --good: #5fd18f; --warn: #e5b05a; --bad: #ff8a8a; --code: #202637;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  a { color: var(--accent); }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 16px; }
+  header.top {
+    position: sticky; top: 0; z-index: 10; background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  header.top .wrap { display: flex; align-items: center; gap: 20px; height: 52px; overflow-x: auto; white-space: nowrap; }
+  header.top strong { font-size: 15px; }
+  header.top a { color: var(--muted); text-decoration: none; font-size: 14px; }
+  header.top a:hover { color: var(--accent); }
+  header.top .gh { margin-left: auto; }
+  .hero { padding: 64px 0 40px; }
+  .eyebrow { color: var(--accent); font-weight: 600; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+  h1 { font-size: clamp(30px, 5vw, 48px); line-height: 1.12; margin: 10px 0 16px; letter-spacing: -.02em; }
+  .lede { font-size: 19px; color: var(--muted); max-width: 720px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+  .btn { display: inline-block; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; border: 1px solid var(--accent); }
+  .btn.primary { background: var(--accent); color: var(--bg); }
+  .btn.ghost { color: var(--accent); }
+  section { padding: 44px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 28px; margin: 0 0 8px; letter-spacing: -.01em; }
+  h3 { font-size: 18px; margin: 0 0 6px; }
+  .sub { color: var(--muted); max-width: 760px; margin: 0 0 24px; }
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .card p { margin: 0; color: var(--muted); font-size: 15px; }
+  .tag { display: inline-block; font: 600 12px/1 ui-monospace, monospace; background: var(--accent-soft); color: var(--accent); padding: 4px 7px; border-radius: 5px; margin-bottom: 8px; }
+  .problem { background: var(--accent-soft); border-radius: 12px; padding: 22px 24px; font-size: 18px; }
+  .problem b { color: var(--accent); }
+  /* lifecycle */
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin: 8px 0 12px; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font: 600 12px/1.3 ui-monospace, monospace; }
+  .step small { display: block; font: 400 12px/1.4 system-ui, sans-serif; color: var(--muted); margin-top: 2px; }
+  .step.gate { border-color: var(--warn); }
+  .step.end { border-color: var(--good); }
+  .step.bad { border-color: var(--bad); }
+  .arrow { align-self: center; color: var(--muted); }
+  .legend { font-size: 14px; color: var(--muted); }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin: 0 4px 0 12px; border: 2px solid; vertical-align: -1px; }
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--accent-soft); font-size: 13px; text-transform: uppercase; letter-spacing: .04em; }
+  tr:last-child td { border-bottom: 0; }
+  .tablewrap { overflow-x: auto; }
+  code { background: var(--code); padding: 1px 6px; border-radius: 4px; font-size: .9em; }
+  pre { background: var(--code); border: 1px solid var(--line); border-radius: 10px; padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  pre code { background: none; padding: 0; }
+  img.diagram { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  .two { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .stats { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .stat b { display: block; font-size: 26px; color: var(--accent); }
+  .stat span { font-size: 13px; color: var(--muted); }
+  .callout { border-left: 4px solid var(--warn); background: var(--surface); padding: 14px 18px; border-radius: 0 10px 10px 0; color: var(--muted); }
+  .ok li::marker { color: var(--good); }
+  .no li::marker { color: var(--warn); }
+  details { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-bottom: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+  @media (max-width: 600px) { .hero { padding-top: 36px; } .arrow { display: none; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <strong>Vendor Risk Onboarding</strong>
+    <a href="#problem">Use case</a>
+    <a href="#principle">Principle</a>
+    <a href="#lifecycle">Lifecycle</a>
+    <a href="#agents">Agents</a>
+    <a href="#defences">Defences</a>
+    <a href="#evidence">Evals</a>
+    <a href="#honest">Status</a>
+    <a class="gh" href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding">GitHub &rarr;</a>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<div class="hero">
+  <div class="eyebrow">Agentic AI &middot; Third-party risk &middot; Banking</div>
+  <h1>Let the LLM propose.<br>Let code decide.</h1>
+  <p class="lede">An evidence-first, human-gated multi-agent system for onboarding vendors: sanctions screening, SOC&nbsp;2 review, risk tiering and audit-ready reporting, where the model is never allowed to approve anything.</p>
+  <div class="btns">
+    <a class="btn primary" href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding">View the code</a>
+    <a class="btn ghost" href="#lifecycle">See how a case flows</a>
+    <a class="btn ghost" href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding/blob/main/medium-article-vendor-risk.md">Read the full write-up</a>
+  </div>
+</div>
+
+<section id="problem">
+  <h2>The use case</h2>
+  <p class="sub">A bank does not buy software from a vendor. It lends the vendor a piece of its own risk.</p>
+  <div class="problem">
+    Before the first invoice is paid, someone must read a SOC&nbsp;2 report, check the pen-test summary, confirm the vendor isn't owned by a sanctioned person through layers of shell companies, check the contract for audit rights and breach-notice clauses, <b>decide how much oversight the relationship deserves</b>, and write down why, in a form an auditor can reconstruct two years later.
+  </div>
+  <div class="grid" style="margin-top:18px">
+    <div class="card"><h3>Document-heavy</h3><p>SOC 2 reports, financial statements, contracts, pen-test summaries, ownership declarations.</p></div>
+    <div class="card"><h3>Judgment-heavy</h3><p>Sanctions near-matches, ownership aggregation, control gaps, how to tier the relationship.</p></div>
+    <div class="card"><h3>High-stakes</h3><p>A missed sanctions hit or an unreviewed breach clause can cost the bank its licence.</p></div>
+    <div class="card"><h3>The trap</h3><p>The vendor writes the evidence. If an agent obeys what a document says, the subject of the investigation can instruct the investigator.</p></div>
+  </div>
+</section>
+
+<section id="principle">
+  <h2>One rule, enforced in code</h2>
+  <p class="sub"><b>LLMs propose, deterministic code disposes.</b> Agents never approve, reject, clear a sanctions match or send a message. These principles appear in the repo as validators, tests and comments, not just prose.</p>
+  <div class="grid">
+    <div class="card"><span class="tag">R1</span><h3>Hard rules live in code</h3><p>Thresholds and role matrices are YAML policy packs; enforcement is Python no prompt can reach.</p></div>
+    <div class="card"><span class="tag">R2</span><h3>No claim without evidence</h3><p>Every claim carries a document, page, verbatim quote (&le;40 words) and the source's SHA-256.</p></div>
+    <div class="card"><span class="tag">R3</span><h3>Agents never decide</h3><p>No approval tool, no send tool, no way for an agent to call the workflow engine.</p></div>
+    <div class="card"><span class="tag">R4</span><h3>Documents are data</h3><p>Vendor text is wrapped, sanitised and never obeyed.</p></div>
+    <div class="card"><span class="tag">R5</span><h3>Stale &ne; deleted</h3><p>Claims go stale, refuted or superseded, but are never hard-deleted.</p></div>
+    <div class="card"><span class="tag">R6 / R9</span><h3>Replayable &amp; gated</h3><p>Every agent step is idempotent; evals gate every change to prompts, policy, scoring or matching.</p></div>
+  </div>
+</section>
+
+<section id="lifecycle">
+  <h2>The lifecycle is a state machine, not a prompt</h2>
+  <p class="sub">The orchestrator drives automated steps until it reaches a human gate, then stops. Illegal transitions raise an error.</p>
+  <div class="flow">
+    <div class="step">NEW</div><span class="arrow">&rarr;</span>
+    <div class="step gate">INTAKE_REVIEW<small>G0 duplicate check</small></div><span class="arrow">&rarr;</span>
+    <div class="step">SCREENING<small>A2 sanctions</small></div><span class="arrow">&rarr;</span>
+    <div class="step gate">HUMAN_SCREEN_REVIEW<small>G1 AML, per match</small></div><span class="arrow">&rarr;</span>
+    <div class="step gate">TIERING<small>G2 for Tier 1&ndash;2</small></div><span class="arrow">&rarr;</span>
+    <div class="step">DUE_DILIGENCE</div><span class="arrow">&rarr;</span>
+    <div class="step">ASSESSMENT</div><span class="arrow">&rarr;</span>
+    <div class="step">VERIFICATION<small>A10 verifier</small></div><span class="arrow">&rarr;</span>
+    <div class="step gate">HUMAN_REVIEW<small>G3 findings</small></div><span class="arrow">&rarr;</span>
+    <div class="step">CONTRACTING</div><span class="arrow">&rarr;</span>
+    <div class="step gate">FINAL_APPROVAL<small>G4 approver set by tier</small></div><span class="arrow">&rarr;</span>
+    <div class="step end">ONBOARDED</div><span class="arrow">&rarr;</span>
+    <div class="step end">MONITORING</div>
+  </div>
+  <p class="legend"><i style="color:var(--warn)"></i>Human gate <i style="color:var(--good)"></i>Live <i style="color:var(--bad)"></i>A confirmed sanctions match ends in <code>REJECTED</code></p>
+
+  <h3 style="margin-top:28px">Rules the engine enforces</h3>
+  <div class="grid">
+    <div class="card"><h3>Segregation of duties</h3><p>The approver cannot be the requester or the analyst who prepared the review.</p></div>
+    <div class="card"><h3>No sanctions bypass</h3><p>Screening &rarr; tiering is forbidden while any potential match is unresolved.</p></div>
+    <div class="card"><h3>Critical findings block approval</h3><p>Unless remediated or covered by an unexpired, time-boxed risk exception.</p></div>
+    <div class="card"><h3>Overrides need reasons</h3><p>A tier override requires a substantive written rationale.</p></div>
+  </div>
+
+  <div class="two" style="margin-top:28px">
+    <figure style="margin:0"><img class="diagram" src="site/lifecycle.png" alt="Case state machine diagram" loading="lazy"><figcaption class="legend">Case state machine</figcaption></figure>
+    <figure style="margin:0"><img class="diagram" src="site/sequence-diagram.png" alt="Sequence diagram of sponsor, workflow, agents, validators and humans" loading="lazy"><figcaption class="legend">Sequence: who acts at each gate</figcaption></figure>
+  </div>
+</section>
+
+<section id="agents">
+  <h2>Twelve agents, each with very little power</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Agent</th><th>Does</th><th>May not</th></tr>
+    <tr><td><b>A1</b> Intake</td><td>Resolves duplicate vendors by link probability (&ge;0.95 auto-link; 0.70&ndash;0.95 human G0)</td><td>Silently merge ambiguous vendors</td></tr>
+    <tr><td><b>A2</b> Screening</td><td>Runs the deterministic matcher, records a recommendation</td><td>Clear a match</td></tr>
+    <tr><td><b>A3</b> Tiering</td><td>Proposes a tier from the scoring engine</td><td>Compute the score itself</td></tr>
+    <tr><td><b>A4</b> Reader</td><td>Extracts schema-only JSON from one untrusted document</td><td>Use <i>any</i> tool</td></tr>
+    <tr><td><b>A5&ndash;A8</b> Specialists</td><td>Security, financial, regulatory/contract, concentration, by tier</td><td>Assign severity outside rules</td></tr>
+    <tr><td><b>A9</b> Synthesizer</td><td>Writes a hedged narrative from structured results</td><td>State legal conclusions</td></tr>
+    <tr><td><b>A10</b> Verifier</td><td>Sees only claims and evidence passages; no author rationale</td><td>Upgrade; it can only downgrade</td></tr>
+    <tr><td><b>A11</b> Steward</td><td>Runs staleness sweeps, re-verifies claims</td><td>Delete claims</td></tr>
+    <tr><td><b>A12</b> Comms</td><td>Drafts vendor messages marked "NOT SENT"</td><td>Send anything</td></tr>
+  </table></div>
+</section>
+
+<section id="core">
+  <h2>The deterministic core</h2>
+  <div class="two">
+    <div>
+      <h3>Scoring with floors</h3>
+      <p class="sub">Inherent risk is a weighted sum of ten factors; residual = inherent &times; (1 &minus; control effectiveness). <b>Missing evidence counts as zero coverage, never "assumed fine".</b> Severity floors stop a good average from hiding a serious gap.</p>
+      <pre><code>Inherent score 85.7/100  -> Tier 1
+Control effectiveness     0.83
+Residual                  14.5  (LOW by number alone)
+3 open HIGH findings      -> floor applied -> HIGH</code></pre>
+    </div>
+    <div>
+      <h3>Sanctions screening: recall first</h3>
+      <p class="sub">Anything at or above the review floor goes to a human, and nothing above it is auto-cleared. Name normalisation, Jaro-Winkler + token-set + phonetic blending, generic-token false-positive control, and the 50% ownership aggregate rule across multi-layer ownership.</p>
+      <pre><code>score = 0.40 Jaro-Winkler
+      + 0.35 token-set ratio
+      + 0.15 phonetic (Soundex)
+      + 0.10 country agreement</code></pre>
+    </div>
+  </div>
+  <h3 style="margin-top:28px">Evidence-first memory: the claim ledger</h3>
+  <div class="flow">
+    <div class="step">UNTRUSTED<small>new claim</small></div><span class="arrow">&rarr;</span>
+    <div class="step end">TRUSTED<small>verifier-confirmed; only these reach scoring</small></div><span class="arrow">&rarr;</span>
+    <div class="step gate">STALE<small>10 deterministic rules</small></div><span class="arrow">&rarr;</span>
+    <div class="step">re-verified &rarr; TRUSTED</div>
+    <div class="step bad">REFUTED / SUPERSEDED</div>
+  </div>
+  <p class="sub">Claims pass four checks before storage: schema, citation existence, quote location with object support, and language safety (e.g. "is fully compliant" becomes "evidence suggests alignment (requires review)").</p>
+</section>
+
+<section id="defences">
+  <h2>Every document is treated as hostile</h2>
+  <div class="grid">
+    <div class="card"><h3>Strip hidden channels</h3><p>Hidden HTML, white or tiny PDF text, DOCX hidden runs, metadata and annotations.</p></div>
+    <div class="card"><h3>Detect injection</h3><p>Seven instruction-pattern families are removed and raised as a HIGH document-integrity finding.</p></div>
+    <div class="card"><h3>Tool-less Reader</h3><p>The agent that reads untrusted text has no tools. Worst case: a wrong extraction that must still survive validation and verification.</p></div>
+    <div class="card"><h3>Sandboxed PDF worker</h3><p>Separate resource-limited process, page cap, OCR fallback, quarantine on crash.</p></div>
+    <div class="card"><h3>LLM gateway</h3><p>Redaction, per-case budget by tier, circuit breaker, global kill switch, replay cassettes.</p></div>
+    <div class="card"><h3>Tamper-evident audit</h3><p>Hash-chained audit log, DB triggers block updates and deletes, JWT with RS256/ES256 only.</p></div>
+  </div>
+</section>
+
+<section id="evidence">
+  <h2>Evals are merge gates</h2>
+  <p class="sub">Fifteen gates run in about three seconds. A change to prompts, policy, scoring or matching must keep them all green.</p>
+  <div class="stats">
+    <div class="stat"><b>1.00</b><span>sanctions recall (592 cases)</span></div>
+    <div class="stat"><b>0 / 12</b><span>injection attacks succeeded</span></div>
+    <div class="stat"><b>0.0</b><span>verifier false-trust (865 trials)</span></div>
+    <div class="stat"><b>14</b><span>end-to-end synthetic scenarios</span></div>
+    <div class="stat"><b>168</b><span>tests in the suite</span></div>
+  </div>
+  <p class="callout" style="margin-top:18px">These come from synthetic data with a deterministic rules provider standing in for the model. They show the <em>structure</em> works, not that a real model on real vendor documents would score 1.0.</p>
+</section>
+
+<section id="honest">
+  <h2>What is real, and what is not</h2>
+  <div class="two">
+    <div class="card"><h3>Built and exercised</h3>
+      <ul class="ok"><li>Workflow engine, gates, segregation of duties, policy packs</li><li>Scoring/tiering, sanctions matcher, ownership aggregation</li><li>Claim ledger, validators, staleness rules</li><li>Sanitisation, injection detection, audit chain</li></ul></div>
+    <div class="card"><h3>Written, not verified live</h3>
+      <ul class="no"><li>A real LLM (backends tested against a scripted fake)</li><li>Postgres / pgvector / row-level security</li><li>Real vendor PDFs; real IdP and Redis</li><li>Docker, Kubernetes, CI, load testing</li></ul></div>
+  </div>
+  <p class="sub" style="margin-top:16px">Not a compliance product. The sanctions list is synthetic and scoring thresholds are illustrative defaults a bank's risk owner would set.</p>
+</section>
+
+<section id="layers">
+  <h2>Two layers in one repository</h2>
+  <div class="two">
+    <div class="card"><span class="tag">src/</span><h3>Platform layer</h3><p>FastAPI service with a LangChain/LangGraph multi-agent workflow: document processor, then KYC, compliance and risk agents in parallel, a report generator, a supervisor with a human gate and reflection loop. Hybrid rules + ML risk engine, prompt registry, LLM observability, stakeholder dashboard.</p></div>
+    <div class="card"><span class="tag">vro-agents/</span><h3>Evidence-first reference build</h3><p>Deterministic workflow engine, policy-as-data, claim ledger, sanctions screening, sandboxed PDF worker, LLM gateway, and an eval suite that gates merges. The stricter design: no auto-approve path exists.</p></div>
+  </div>
+</section>
+
+<section id="start">
+  <h2>Explore it</h2>
+  <details open><summary>Run the platform layer</summary>
+<pre><code>git clone https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding.git
+cd Vendor-Risk-Onboarding
+python -m venv venv &amp;&amp; source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+make run</code></pre></details>
+  <details><summary>Docs</summary>
+    <ul>
+      <li><a href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding/blob/main/medium-article-vendor-risk.md">Full article: architecture and findings</a></li>
+      <li><a href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding/blob/main/vendor-risk-diagrams.md">Mermaid diagrams</a></li>
+      <li><a href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding/blob/main/docs/architecture.md">Platform architecture</a></li>
+      <li><a href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding/tree/main/vro-agents">vro-agents reference implementation</a></li>
+      <li><a href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding/blob/main/QUICK_START.md">Quick start</a></li>
+    </ul></details>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    Built with LangGraph, FastAPI and PostgreSQL &middot; MIT licensed &middot;
+    <a href="https://github.com/sadiqgpasha89/Vendor-Risk-Onboarding">github.com/sadiqgpasha89/Vendor-Risk-Onboarding</a>
+  </div>
+</footer>
+
+</body>
+</html>
